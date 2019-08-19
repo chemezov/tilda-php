@@ -6,5 +6,4 @@ use TildaTools\Tilda\Exceptions\TildaException;
 
 class TildaApiException extends TildaException
 {
-
 }

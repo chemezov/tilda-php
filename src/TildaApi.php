@@ -35,13 +35,14 @@ class TildaApi
      */
     public function __construct(array $config)
     {
-        $this->endpoint = $config['endpoint'] || $this->endpoint;
+        $this->endpoint = $config['endpoint'] ?? $this->endpoint;
         $this->publicKey = $config[self::CONFIG_OPTION_PUBLIC_KEY];
         if (!$this->publicKey) {
-            throw TildaApiInvalidConfigurationException::forOption(self::CONFIG_OPTION_PUBLIC_KEY);
+            throw TildaApiInvalidConfigurationException::forConfigOption(self::CONFIG_OPTION_PUBLIC_KEY);
         }
+        $this->secretKey = $config[self::CONFIG_OPTION_SECRET_KEY];
         if (!$this->secretKey) {
-            throw TildaApiInvalidConfigurationException::forOption(self::CONFIG_OPTION_SECRET_KEY);
+            throw TildaApiInvalidConfigurationException::forConfigOption(self::CONFIG_OPTION_SECRET_KEY);
         }
         $this->secretKey = $config['secretKey'];
     }

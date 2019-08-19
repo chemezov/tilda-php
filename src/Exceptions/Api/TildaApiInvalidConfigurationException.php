@@ -2,10 +2,14 @@
 
 namespace TildaTools\Tilda\Exceptions\Api;
 
-
 class TildaApiInvalidConfigurationException extends TildaApiException
 {
-    public static function forOption(string $name) {
-        return new TildaApiInvalidConfigurationException("Please specify '$name' option.");
+    /**
+     * @param string $name
+     * @return TildaApiInvalidConfigurationException
+     */
+    public static function forConfigOption(string $name)
+    {
+        return new static("Please specify '$name' configuration option.");
     }
 }
