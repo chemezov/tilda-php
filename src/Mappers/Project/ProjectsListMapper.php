@@ -1,12 +1,12 @@
 <?php
 
-namespace IncOre\Tilda\Mappers\Project;
+namespace TildaTools\Tilda\Mappers\Project;
 
-use IncOre\Tilda\Exceptions\Map\UnableToMapApiResponseException;
-use IncOre\Tilda\Exceptions\InvalidJsonException;
-use IncOre\Tilda\Mappers\MapperInterface;
-use IncOre\Tilda\Mappers\ObjectMapper;
-use IncOre\Tilda\Objects\Project\ProjectsListItem;
+use TildaTools\Tilda\Exceptions\Map\UnableToMapApiResponseException;
+use TildaTools\Tilda\Exceptions\InvalidJsonException;
+use TildaTools\Tilda\Mappers\MapperInterface;
+use TildaTools\Tilda\Mappers\ObjectMapper;
+use TildaTools\Tilda\Objects\Project\ProjectsListItem;
 
 class ProjectsListMapper extends ObjectMapper implements MapperInterface
 {

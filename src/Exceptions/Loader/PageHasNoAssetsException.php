@@ -1,6 +1,6 @@
 <?php
 
-namespace IncOre\Tilda\Exceptions\Loader;
+namespace TildaTools\Tilda\Exceptions\Loader;
 
 class PageHasNoAssetsException extends TildaLoaderException
 {

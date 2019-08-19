@@ -1,14 +1,14 @@
 <?php
 
-namespace IncOre\Tilda;
+namespace TildaTools\Tilda;
 
 use BadMethodCallException;
-use IncOre\Tilda\Exceptions\Loader\AssetLoadingException;
-use IncOre\Tilda\Exceptions\Loader\AssetStoringException;
-use IncOre\Tilda\Exceptions\Loader\PageHasNoAssetsException;
-use IncOre\Tilda\Exceptions\Loader\PageNotLoadedException;
-use IncOre\Tilda\Exceptions\Loader\TildaLoaderInvalidConfigurationException;
-use IncOre\Tilda\Objects\Page\ExportedPage;
+use TildaTools\Tilda\Exceptions\Loader\AssetLoadingException;
+use TildaTools\Tilda\Exceptions\Loader\AssetStoringException;
+use TildaTools\Tilda\Exceptions\Loader\PageHasNoAssetsException;
+use TildaTools\Tilda\Exceptions\Loader\PageNotLoadedException;
+use TildaTools\Tilda\Exceptions\Loader\TildaLoaderInvalidConfigurationException;
+use TildaTools\Tilda\Objects\Page\ExportedPage;
 
 // TODO: phpdoc update
 // TODO: docs
@@ -16,19 +16,26 @@ use IncOre\Tilda\Objects\Page\ExportedPage;
 
 class TildaLoader
 {
+    /** @var TildaApi */
     protected $client;
+    /** @var array */
+    protected $config;
 
-    public function __construct(TildaApi $client)
+    public function __construct(TildaApi $client, array $config)
     {
         $this->client = $client;
+        $this->config = $config;
     }
 
     /**
      * @param int $pageId
      * @return Objects\Page\ExportedPage|null
-     * @throws PageNotLoadedException
      * @throws AssetLoadingException
      * @throws AssetStoringException
+     * @throws Exceptions\Api\TildaApiException
+     * @throws Exceptions\InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
+     * @throws PageNotLoadedException
      */
     public function page(int $pageId)
     {
@@ -39,18 +46,19 @@ class TildaLoader
         $cssList = $pageInfo->css ?? [];
         $jsList = $pageInfo->js ?? [];
         $imgList = $pageInfo->images ?? [];
-        $this->load($cssList, config('tilda.path.css') . '/' . $pageId);
-        $this->load($jsList, config('tilda.path.js') . '/' . $pageId);
-        $this->load($imgList, config('tilda.path.img') . '/' . $pageId);
+        $this->load($cssList, $this->config['path']['css'] . '/' . $pageId);
+        $this->load($jsList, $this->config['path']['js'] . '/' . $pageId);
+        $this->load($imgList, $this->config['path']['img'] . '/' . $pageId);
         return $pageInfo;
     }
 
     /**
      * @param ExportedPage $page
+     * @param string $relPath
      * @return array
      * @throws PageHasNoAssetsException
      */
-    public function assets(ExportedPage $page)
+    public function assets(ExportedPage $page, string $relPath)
     {
         if (!$page->css || !$page->js) {
             throw new PageHasNoAssetsException;
@@ -58,8 +66,8 @@ class TildaLoader
         $cssList = $page->css;
         $jsList = $page->js;
         $files = [];
-        $cssPath = substr(config('tilda.path.css'), strlen(public_path()));
-        $jsPath = substr(config('tilda.path.js'), strlen(public_path()));
+        $cssPath = substr($this->config['path']['css'], strlen($relPath));
+        $jsPath = substr($this->config['path']['js'], strlen($relPath));
         foreach ($cssList as $file) {
             $files['css'][] = $cssPath . '/' . $page->id . '/' . $file->to;
         }
@@ -69,6 +77,12 @@ class TildaLoader
         return $files;
     }
 
+    /**
+     * @param $fileList
+     * @param $path
+     * @throws AssetLoadingException
+     * @throws AssetStoringException
+     */
     protected function load($fileList, $path)
     {
         foreach ($fileList as $file) {
@@ -80,6 +94,12 @@ class TildaLoader
         }
     }
 
+    /**
+     * @param $file
+     * @param $assetPath
+     * @param $localFilePath
+     * @throws AssetStoringException
+     */
     protected function store($file, $assetPath, $localFilePath)
     {
         if (!$this->isDirExists($assetPath)) {
@@ -105,9 +125,12 @@ class TildaLoader
         return mkdir($path, 0775, true);
     }
 
+    /**
+     * @throws TildaLoaderInvalidConfigurationException
+     */
     protected function validateConfig()
     {
-        foreach (config('tilda.path') as $param) {
+        foreach ($this->config['path'] as $param) {
             if (!$param || !is_dir($param)) {
                 throw new TildaLoaderInvalidConfigurationException;
             }

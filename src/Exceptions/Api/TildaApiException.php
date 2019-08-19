@@ -1,8 +1,8 @@
 <?php
 
-namespace IncOre\Tilda\Exceptions\Api;
+namespace TildaTools\Tilda\Exceptions\Api;
 
-use IncOre\Tilda\Exceptions\TildaException;
+use TildaTools\Tilda\Exceptions\TildaException;
 
 class TildaApiException extends TildaException
 {

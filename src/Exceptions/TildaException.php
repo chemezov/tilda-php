@@ -1,6 +1,6 @@
 <?php
 
-namespace IncOre\Tilda\Exceptions;
+namespace TildaTools\Tilda\Exceptions;
 
 use Exception;
 

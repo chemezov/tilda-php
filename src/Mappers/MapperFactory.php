@@ -1,14 +1,14 @@
 <?php
 
-namespace IncOre\Tilda\Mappers;
+namespace TildaTools\Tilda\Mappers;
 
-use IncOre\Tilda\Exceptions\Map\MapperNotFoundException;
-use IncOre\Tilda\Mappers\Page\ExportedPageMapper;
-use IncOre\Tilda\Mappers\Page\PageMapper;
-use IncOre\Tilda\Mappers\Page\PagesListMapper;
-use IncOre\Tilda\Mappers\Project\ExportedProjectMapper;
-use IncOre\Tilda\Mappers\Project\ProjectMapper;
-use IncOre\Tilda\Mappers\Project\ProjectsListMapper;
+use TildaTools\Tilda\Exceptions\Map\MapperNotFoundException;
+use TildaTools\Tilda\Mappers\Page\ExportedPageMapper;
+use TildaTools\Tilda\Mappers\Page\PageMapper;
+use TildaTools\Tilda\Mappers\Page\PagesListMapper;
+use TildaTools\Tilda\Mappers\Project\ExportedProjectMapper;
+use TildaTools\Tilda\Mappers\Project\ProjectMapper;
+use TildaTools\Tilda\Mappers\Project\ProjectsListMapper;
 
 class MapperFactory
 {

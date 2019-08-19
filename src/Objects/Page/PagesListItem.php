@@ -1,12 +1,12 @@
 <?php
 
-namespace IncOre\Tilda\Objects\Page;
+namespace TildaTools\Tilda\Objects\Page;
 
-use IncOre\Tilda\Objects\BaseObject;
+use TildaTools\Tilda\Objects\BaseObject;
 
 /**
  * Class Project
- * @package IncOre\Tilda\Objects
+ * @package TildaTools\Tilda\Objects
  *
  * @property int $id
  * @property int $projectid

@@ -1,8 +1,8 @@
 <?php
 
-namespace IncOre\Tilda\Exceptions\Loader;
+namespace TildaTools\Tilda\Exceptions\Loader;
 
-use IncOre\Tilda\Exceptions\TildaException;
+use TildaTools\Tilda\Exceptions\TildaException;
 
 class TildaLoaderException extends TildaException
 {

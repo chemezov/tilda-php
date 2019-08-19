@@ -1,10 +1,10 @@
 <?php
 
-namespace IncOre\Tilda\Objects;
+namespace TildaTools\Tilda\Objects;
 
 /**
  * Class Image
- * @package IncOre\Tilda\Objects
+ * @package TildaTools\Tilda\Objects
  *
  * @property string $from
  * @property string $to
@@ -12,5 +12,4 @@ namespace IncOre\Tilda\Objects;
 
 class Asset extends BaseObject
 {
-
 }

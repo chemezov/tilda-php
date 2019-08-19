@@ -1,9 +1,9 @@
 <?php
 
-namespace IncOre\Tilda\Mappers;
+namespace TildaTools\Tilda\Mappers;
 
-use IncOre\Tilda\Exceptions\Map\UnableToMapApiResponseException;
-use IncOre\Tilda\Objects\Asset;
+use TildaTools\Tilda\Exceptions\Map\UnableToMapApiResponseException;
+use TildaTools\Tilda\Objects\Asset;
 
 class ObjectMapper
 {

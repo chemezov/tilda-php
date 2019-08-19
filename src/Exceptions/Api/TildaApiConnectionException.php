@@ -1,6 +1,6 @@
 <?php
 
-namespace IncOre\Tilda\Exceptions\Api;
+namespace TildaTools\Tilda\Exceptions\Api;
 
 
 class TildaApiConnectionException extends TildaApiException

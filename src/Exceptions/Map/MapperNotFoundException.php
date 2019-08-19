@@ -1,8 +1,8 @@
 <?php
 
-namespace IncOre\Tilda\Exceptions\Map;
+namespace TildaTools\Tilda\Exceptions\Map;
 
-use IncOre\Tilda\Exceptions\TildaException;
+use TildaTools\Tilda\Exceptions\TildaException;
 
 class MapperNotFoundException extends TildaException
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace IncOre\Tilda\Objects;
+namespace TildaTools\Tilda\Objects;
 
 
 use BadMethodCallException;

@@ -1,27 +1,57 @@
 <?php
 
-namespace IncOre\Tilda;
+namespace TildaTools\Tilda;
 
-use IncOre\Tilda\Exceptions\Api\HttpClientExceptions;
-use IncOre\Tilda\Exceptions\Api\TildaApiConnectionException;
-use IncOre\Tilda\Exceptions\Api\TildaApiErrorResponseException;
-use IncOre\Tilda\Exceptions\Api\TildaApiException;
-use IncOre\Tilda\Exceptions\Api\TildaApiInvalidConfigurationException;
-use IncOre\Tilda\Exceptions\InvalidJsonException;
-use IncOre\Tilda\Mappers\MapperFactory;
-use IncOre\Tilda\Objects\Page\ExportedPage;
-use IncOre\Tilda\Objects\Page\Page;
-use IncOre\Tilda\Objects\Page\PagesListItem;
-use IncOre\Tilda\Objects\Project\ExportedProject;
-use IncOre\Tilda\Objects\Project\Project;
-use IncOre\Tilda\Objects\Project\ProjectsListItem;
+use TildaTools\Tilda\Exceptions\Api\HttpClientExceptions;
+use TildaTools\Tilda\Exceptions\Api\TildaApiConnectionException;
+use TildaTools\Tilda\Exceptions\Api\TildaApiErrorResponseException;
+use TildaTools\Tilda\Exceptions\Api\TildaApiException;
+use TildaTools\Tilda\Exceptions\Api\TildaApiInvalidConfigurationException;
+use TildaTools\Tilda\Exceptions\InvalidJsonException;
+use TildaTools\Tilda\Mappers\MapperFactory;
+use TildaTools\Tilda\Objects\Page\ExportedPage;
+use TildaTools\Tilda\Objects\Page\Page;
+use TildaTools\Tilda\Objects\Page\PagesListItem;
+use TildaTools\Tilda\Objects\Project\ExportedProject;
+use TildaTools\Tilda\Objects\Project\Project;
+use TildaTools\Tilda\Objects\Project\ProjectsListItem;
 
 class TildaApi
 {
+    const CONFIG_OPTION_PUBLIC_KEY = 'publicKey';
+    const CONFIG_OPTION_SECRET_KEY = 'secretKey';
+
+    /** @var string */
+    protected $endpoint = 'http://api.tildacdn.info/v1';
+    /** @var string */
+    protected $publicKey;
+    /** @var string */
+    protected $secretKey;
+
+    /**
+     * TildaApi constructor.
+     * @param array $config
+     * @throws TildaApiInvalidConfigurationException
+     */
+    public function __construct(array $config)
+    {
+        $this->endpoint = $config['endpoint'] || $this->endpoint;
+        $this->publicKey = $config[self::CONFIG_OPTION_PUBLIC_KEY];
+        if (!$this->publicKey) {
+            throw TildaApiInvalidConfigurationException::forOption(self::CONFIG_OPTION_PUBLIC_KEY);
+        }
+        if (!$this->secretKey) {
+            throw TildaApiInvalidConfigurationException::forOption(self::CONFIG_OPTION_SECRET_KEY);
+        }
+        $this->secretKey = $config['secretKey'];
+    }
+
     /**
      * @param bool $asJson
-     * @return ProjectsListItem[] $projectsList
+     * @return ProjectsListItem[]|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getProjectsList($asJson = false)
     {
@@ -31,8 +61,10 @@ class TildaApi
     /**
      * @param int $projectId
      * @param bool $asJson
-     * @return Project $project
+     * @return Project|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getProject(int $projectId, $asJson = false)
     {
@@ -42,8 +74,10 @@ class TildaApi
     /**
      * @param int $projectId
      * @param bool $asJson
-     * @return ExportedProject $project
+     * @return ExportedProject|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getProjectExport(int $projectId, $asJson = false)
     {
@@ -53,8 +87,10 @@ class TildaApi
     /**
      * @param int $projectId
      * @param bool $asJson
-     * @return PagesListItem[] $pagesList
+     * @return PagesListItem[]|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getPagesList(int $projectId, $asJson = false)
     {
@@ -64,8 +100,10 @@ class TildaApi
     /**
      * @param int $pageId
      * @param bool $asJson
-     * @return Page $page
+     * @return Page|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getPage(int $pageId, $asJson = false)
     {
@@ -75,8 +113,10 @@ class TildaApi
     /**
      * @param int $pageId
      * @param bool $asJson
-     * @return Page $page
+     * @return Page|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getPageFull(int $pageId, $asJson = false)
     {
@@ -86,8 +126,10 @@ class TildaApi
     /**
      * @param int $pageId
      * @param bool $asJson
-     * @return ExportedPage $page
+     * @return ExportedPage|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getPageExport(int $pageId, $asJson = false)
     {
@@ -97,18 +139,30 @@ class TildaApi
     /**
      * @param int $pageId
      * @param bool $asJson
-     * @return ExportedPage $page
+     * @return ExportedPage|string
      * @throws TildaApiException
+     * @throws InvalidJsonException
+     * @throws Exceptions\Map\MapperNotFoundException
      */
     public function getPageFullExport(int $pageId, $asJson = false)
     {
         return $this->request('getpagefullexport', ['pageid' => $pageId], $asJson);
     }
 
+    /**
+     * @param $uri
+     * @param array $params
+     * @param bool $asJson
+     * @return mixed|string
+     * @throws Exceptions\Map\MapperNotFoundException
+     * @throws HttpClientExceptions
+     * @throws InvalidJsonException
+     * @throws TildaApiConnectionException
+     * @throws TildaApiErrorResponseException
+     */
     protected function request($uri, $params = [], $asJson = false)
     {
-        $this->validateConfig();
-        $url = config('tilda.url.api_url') . '/' . config('tilda.url.api_ver') . '/' . $uri . $this->queryString($params);
+        $url = $this->endpoint . '/' . $uri . $this->queryString($params);
         if ($curl = curl_init()) {
             $headers = [
                 'Content-type: application/json',
@@ -138,18 +192,9 @@ class TildaApi
     protected function queryString($params = [])
     {
         $accessParams = [
-            'publickey' => config('tilda.url.public_key'),
-            'secretkey' => config('tilda.url.secret_key')
+            'publickey' => $this->publicKey,
+            'secretkey' => $this->secretKey
         ];
         return '?' . http_build_query(array_merge($params, $accessParams));
-    }
-
-    protected function validateConfig()
-    {
-        foreach (config('tilda.url') as $param) {
-            if (!$param) {
-                throw new TildaApiInvalidConfigurationException;
-            }
-        }
     }
 }
