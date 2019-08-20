@@ -6,10 +6,20 @@ use TildaTools\Tilda\Exceptions\Loader\AssetLoadingException;
 use TildaTools\Tilda\Exceptions\Loader\AssetStoringException;
 use TildaTools\Tilda\Exceptions\Loader\PageNotLoadedException;
 use TildaTools\Tilda\Exceptions\Loader\TildaLoaderInvalidConfigurationException;
+use TildaTools\Tilda\Objects\Asset;
 
 function resolvePath(...$pathParts)
 {
     return join(DIRECTORY_SEPARATOR, $pathParts);
+}
+
+function fixRelativePath($path, $to)
+{
+    if (substr($path, 0, 1) === DIRECTORY_SEPARATOR) {
+        return $path;
+    } else {
+        return resolvePath($to, $path);
+    }
 }
 
 function rrmdir($dir)
@@ -31,14 +41,17 @@ function rrmdir($dir)
 class TildaLoader
 {
     const CONFIG_OPTION_PATH = 'path';
-    const CONFIG_OPTION_HTML_FILE_NAME = 'htmlFileName';
-    const DEFAULT_HTML_FILE_NAME = 'index.html';
+    const CONFIG_OPTION_IMAGE_PATH = 'imagesPath';
+    const CONFIG_OPTION_CSS_PATH = 'cssPath';
+    const CONFIG_OPTION_JS_PATH = 'jsPath';
 
     /** @var TildaApi */
     protected $client;
     /** @var string */
     protected $path;
-    protected $htmlFileName;
+    protected $cssPath;
+    protected $jsPath;
+    protected $imagesPath;
 
     /**
      * TildaLoader constructor.
@@ -49,11 +62,31 @@ class TildaLoader
     public function __construct(TildaApi $client, array $config)
     {
         $this->client = $client;
-        $this->path = $config[self::CONFIG_OPTION_PATH];
-        $this->htmlFileName = $config[self::CONFIG_OPTION_HTML_FILE_NAME] ?? self::DEFAULT_HTML_FILE_NAME;
+        $this->fillProperties([self::CONFIG_OPTION_PATH], $config, true);
+        $this->fillProperties([self::CONFIG_OPTION_CSS_PATH, self::CONFIG_OPTION_IMAGE_PATH, self::CONFIG_OPTION_JS_PATH], $config);
+        $this->fixPaths();
+    }
 
-        if (!$this->path) {
-            throw TildaLoaderInvalidConfigurationException::forConfigOption(self::CONFIG_OPTION_PATH);
+    /**
+     * @param array $names
+     * @param array $config
+     * @param bool $required
+     * @throws TildaLoaderInvalidConfigurationException
+     */
+    private function fillProperties(array $names, array $config, bool $required = false)
+    {
+        foreach ($names as $option) {
+            $this->{$option} = $config[$option];
+            if ($required && $this->{$option} === null) {
+                throw TildaLoaderInvalidConfigurationException::forConfigOption($option);
+            }
+        }
+    }
+
+    private function fixPaths()
+    {
+        foreach ([self::CONFIG_OPTION_CSS_PATH, self::CONFIG_OPTION_IMAGE_PATH, self::CONFIG_OPTION_JS_PATH] as $property) {
+            $this->{$property} = fixRelativePath($this->{$property}, $this->path);
         }
     }
 
@@ -67,23 +100,26 @@ class TildaLoader
      * @throws Exceptions\Map\MapperNotFoundException
      * @throws PageNotLoadedException
      */
-    public function project(int $projectId, bool $clean = true)
+    public function project(int $projectId, bool $clean = false)
     {
-        $pages = $this->client->getPagesList($projectId);
-
         if ($clean) {
-            rrmdir($this->getProjectPath($projectId));
+            rrmdir($this->path);
         }
 
+        $project = $this->client->getProjectExport($projectId);
+        $this->loadFiles($project->css, $this->cssPath);
+        $this->loadFiles($project->js, $this->jsPath);
+        $this->loadFiles($project->images, $this->imagesPath);
+
+        $pages = $this->client->getPagesList($projectId);
+
         foreach ($pages as $page) {
-            $this->page($page->id, false);
+            $this->page($page->id);
         }
     }
 
     /**
      * @param int $pageId
-     * @param bool $clean
-     * @return Objects\Page\ExportedPage|null
      * @throws AssetLoadingException
      * @throws AssetStoringException
      * @throws Exceptions\Api\TildaApiException
@@ -91,52 +127,34 @@ class TildaLoader
      * @throws Exceptions\Map\MapperNotFoundException
      * @throws PageNotLoadedException
      */
-    public function page(int $pageId, bool $clean = true)
+    public function page(int $pageId)
     {
-        $pageInfo = $this->client->getPageFullExport($pageId);
-        if (!$pageInfo) {
+        $page = $this->client->getPageFullExport($pageId);
+        if (!$page) {
             throw new PageNotLoadedException;
         }
 
-        $pagePath = $this->getPagePath($pageInfo->projectid, $pageId);
-
-        if ($clean) {
-            rrmdir($pagePath);
-        }
-
-        $this->loadFiles($pageInfo->css ?? [], $pagePath);
-        $this->loadFiles($pageInfo->js ?? [], $pagePath);
-        $this->loadFiles($pageInfo->images ?? [], $pagePath);
-
-        $this->store($pageInfo->html, $pagePath, $this->htmlFileName);
-        return $pageInfo;
-    }
-
-    public function getProjectPath($projectId)
-    {
-        return resolvePath($this->path, $projectId);
-    }
-
-    public function getPagePath($projectId, $pageId)
-    {
-        return resolvePath($this->getProjectPath($projectId), $pageId);
+        $this->loadFiles($page->css, $this->cssPath);
+        $this->loadFiles($page->js, $this->jsPath);
+        $this->loadFiles($page->images, $this->imagesPath);
+        $this->store($page->html, $this->path, $page->filename);
     }
 
     /**
-     * @param $fileList
+     * @param array|null $files
      * @param $path
      * @throws AssetLoadingException
      * @throws AssetStoringException
      */
-    protected function loadFiles($fileList, $path)
+    protected function loadFiles($files, $path)
     {
-        foreach ($fileList as $file) {
+        foreach (($files ?? []) as $file) {
             $this->loadFile($file, $path);
         }
     }
 
     /**
-     * @param $file
+     * @param Asset $file
      * @param $path
      * @throws AssetLoadingException
      * @throws AssetStoringException
