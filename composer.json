@@ -19,7 +19,7 @@
             "email": "mledin89@gmail.com"
         }
     ],
-    "version": "0.0.3",
+    "version": "0.0.4",
     "require": {
         "php": ">=7.0",
         "ext-json": "*",
