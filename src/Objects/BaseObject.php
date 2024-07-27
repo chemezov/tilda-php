@@ -43,6 +43,7 @@ class BaseObject implements JsonSerializable
         throw new BadMethodCallException();
     }
 
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return $this->attributes;
